@@ -1,0 +1,10 @@
+C:\Users\jvmilazz\Documents\Visual Studio 2012\Projects\AudioFlasher\AudioFlasher\bin\Debug\AudioFlasher.exe.config
+C:\Users\jvmilazz\Documents\Visual Studio 2012\Projects\AudioFlasher\AudioFlasher\bin\Debug\AudioFlasher.exe
+C:\Users\jvmilazz\Documents\Visual Studio 2012\Projects\AudioFlasher\AudioFlasher\bin\Debug\AudioFlasher.pdb
+C:\Users\jvmilazz\Documents\Visual Studio 2012\Projects\AudioFlasher\AudioFlasher\bin\Debug\OpenTK.dll
+C:\Users\jvmilazz\Documents\Visual Studio 2012\Projects\AudioFlasher\AudioFlasher\bin\Debug\OpenTK.xml
+C:\Users\jvmilazz\Documents\Visual Studio 2012\Projects\AudioFlasher\AudioFlasher\obj\Debug\AudioFlasher.csprojResolveAssemblyReference.cache
+C:\Users\jvmilazz\Documents\Visual Studio 2012\Projects\AudioFlasher\AudioFlasher\obj\Debug\AudioFlasher.exe
+C:\Users\jvmilazz\Documents\Visual Studio 2012\Projects\AudioFlasher\AudioFlasher\obj\Debug\AudioFlasher.pdb
+C:\Users\jvmilazz\Documents\Visual Studio 2012\Projects\AudioFlasher\AudioFlasher\bin\Debug\OpenTK.GLControl.dll
+C:\Users\jvmilazz\Documents\Visual Studio 2012\Projects\AudioFlasher\AudioFlasher\bin\Debug\OpenTK.GLControl.xml
