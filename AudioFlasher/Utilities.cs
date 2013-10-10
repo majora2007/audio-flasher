@@ -28,5 +28,12 @@ namespace AudioFlasher
         {
             return (int) ((c.A << 24) | (c.B << 16) | (c.G << 8) | c.R);
         }
+
+        public static double HertzToSeconds( int freq )
+        {
+            if ( freq <= 0 ) return 0.0;
+ 
+            return (double) (1.0 / (freq));
+        }
     }
 }
