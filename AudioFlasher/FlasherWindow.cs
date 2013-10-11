@@ -12,27 +12,38 @@ namespace AudioFlasher
 {
     class FlasherWindow : GameWindow
     {
-        
+
+        #region Flashing Variables
         // A schedule of frequencies to flash at. Each entry stores the start time of a new flash freq and the frequency itself.
         PriorityQueue<FlashChange> flashQueue = new PriorityQueue<FlashChange>();
-
 
         // Frequency in Hertz
         private int flashRate = 1;
         // Frequency in seconds
         double flashFreq = 0.0;
+        #endregion Flashing Variables
 
+        #region Rendering Variables
         private Color4 renderColor = Color4.Black;
-        
-        private bool isFlashing = false;
+        // The index which dictates what the pulse color is.
+        private int colorIndex = 0;
+        private Color4[] colors = new Color4[10] { Color4.Blue, Color4.Green, Color4.Red, Color4.Purple, Color4.RosyBrown,
+                                                    Color4.Salmon, Color4.ForestGreen, Color4.Fuchsia, Color4.DarkRed, Color4.DarkSlateGray
+                                                 };
+        #endregion Rendering Variables
 
+        #region Control Variables
+        private bool isFlashing = false;
+        //private bool isPaused = false;
+        #endregion Control Variables
+
+        #region Time Variables
         private double timeBetweenUpdates = 0.0;
         double deltaTime = 0.0;
-
         double deltaFlashTime = 0.0;
-        
+        #endregion Time Variables
 
-        #region Constructor
+        
         public FlasherWindow()
             : base( 800, 600, new GraphicsMode(16, 16))
         {
@@ -40,19 +51,21 @@ namespace AudioFlasher
             flashFreq = Utilities.HertzToSeconds( flashRate );
             Console.WriteLine( "Flashing Frequency in seconds: {0}", flashFreq );
         }
-        #endregion Constructor
 
         #region OnLoad
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
 
-            const double duration = 2.0; // duration is 1 second long
+            /*const double duration = 2.0; // duration is 1 second long
             for ( int i = 1; i <= 10; i++ )
             {
                 flashQueue.Enqueue( new FlashChange( Utilities.HertzToSeconds( i+2 ), i * duration ) ); // startTime should be an offset to current time, thus we can start at 0.0
                 Console.WriteLine( "Flash Queue's Count: {0}", flashQueue.Count );
-            }
+            }*/
+
+            GenerateAlphaFlashSchedule( ref flashQueue );
+            Console.WriteLine( "Flash Queue's Count: {0}", flashQueue.Count );
 
 
             this.VSync = VSyncMode.Off;
@@ -83,14 +96,23 @@ namespace AudioFlasher
             {
                 flashFreq = flashQueue.Peek().FreqInSec; // this is not working
                 deltaTime = flashQueue.Dequeue().StartTime;
-                Console.WriteLine( "New Flash Freq: {0}. Next update in {1} secs.", flashFreq, flashQueue.Peek().StartTime - deltaTime );
+                
+                FlashChange change = flashQueue.Peek();
+                if ( change == null )
+                {
+                    Console.WriteLine( "New Flash Freq: {0}. No more updates", flashFreq );
+                }
+                else
+                {
+                    Console.WriteLine( "New Flash Freq: {0}. Next update in {1} secs.", flashFreq, flashQueue.Peek().StartTime - deltaTime );
+                }
+                
             }
 
             if ( deltaFlashTime >= flashFreq )
             {
                 toggleColor();
                 deltaFlashTime = 0.0;
-
             }
 
             if ( Keyboard[OpenTK.Input.Key.Escape] )
@@ -102,24 +124,22 @@ namespace AudioFlasher
                 timeBetweenUpdates = 0.0;
                 isFlashing = !isFlashing;
             }
-            /*else if ( Mouse[OpenTK.Input.MouseButton.Left] ) // && deltaTime >= 0.5
+            else if ( Keyboard[OpenTK.Input.Key.ControlLeft] || Keyboard[OpenTK.Input.Key.ControlRight] )
             {
-                Console.WriteLine( "Left click occured at ({0}, {1}).", Mouse.X, Mouse.Y );
+                if ( Keyboard[OpenTK.Input.Key.Number0] ) this.colorIndex = 0;
+                else if ( Keyboard[OpenTK.Input.Key.Number1] ) this.colorIndex = 1;
+                else if ( Keyboard[OpenTK.Input.Key.Number2] ) this.colorIndex = 2;
+                else if ( Keyboard[OpenTK.Input.Key.Number3] ) this.colorIndex = 3;
+                else if ( Keyboard[OpenTK.Input.Key.Number4] ) this.colorIndex = 4;
+                else if ( Keyboard[OpenTK.Input.Key.Number5] ) this.colorIndex = 5;
+                else if ( Keyboard[OpenTK.Input.Key.Number6] ) this.colorIndex = 6;
+                else if ( Keyboard[OpenTK.Input.Key.Number7] ) this.colorIndex = 7;
+                else if ( Keyboard[OpenTK.Input.Key.Number8] ) this.colorIndex = 8;
+                else if ( Keyboard[OpenTK.Input.Key.Number9] ) this.colorIndex = 9;
+
+                //else if ( Keyboard[OpenTK.Input.Key.P] ) this.isPaused = !this.isPaused;
             }
-            else if ( Keyboard[OpenTK.Input.Key.Up] && timeBetweenUpdates >= 0.7 )
-            {
-                flashRate++;
-                flashFreq = Utilities.HertzToSeconds( flashRate );
-                Console.WriteLine( "Flashing increased to {0}", flashRate );
-            }
-            else if ( Keyboard[OpenTK.Input.Key.Down] && timeBetweenUpdates >= 0.7 )
-            {
-                if ( flashRate - 1 < 0 ) flashRate = 0;
-                else flashRate--;
-                
-                flashFreq = Utilities.HertzToSeconds( flashRate );
-                Console.WriteLine( "Flashing decreased to {0}", flashRate );
-            }*/
+
         }
 
         protected override void OnRenderFrame( OpenTK.FrameEventArgs e )
@@ -142,7 +162,7 @@ namespace AudioFlasher
         {
             if ( this.renderColor == Color4.Black )
             {
-                this.renderColor = Color4.Purple;
+                this.renderColor = colors[colorIndex];
             }
             else
             {
@@ -160,6 +180,19 @@ namespace AudioFlasher
             if ( freq <= 0.0 ) return 0.0;
 
             return (double) (1.0 / (freq));
+        }
+
+        private void GenerateAlphaFlashSchedule( ref PriorityQueue<FlashChange> queue )
+        {
+            const int alphaLow = 8;
+            const int alphaHigh = 13;
+            Random rnd = new Random();
+
+            for ( int i = 1; i <= 10; i++ )
+            {
+                flashQueue.Enqueue( new FlashChange( Utilities.HertzToSeconds( rnd.Next( alphaLow, alphaHigh ) ), rnd.NextDouble() * 10.0 + 1.0) ); // startTime should be an offset to current time, thus we can start at 0.0
+                Console.WriteLine( "Flash Queue's Count: {0}", flashQueue.Count );
+            }
         }
 
         #endregion
