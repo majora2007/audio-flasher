@@ -12,22 +12,32 @@ namespace AudioFlasher
 {
     class FlasherWindow : GameWindow
     {
-        private int FLASH_RATE = 1;
+        
+        // A schedule of frequencies to flash at. Each entry stores the start time of a new flash freq and the frequency itself.
+        PriorityQueue<FlashChange> flashQueue = new PriorityQueue<FlashChange>();
+
+
+        // Frequency in Hertz
+        private int flashRate = 1;
+        // Frequency in seconds
+        double flashFreq = 0.0;
 
         private Color4 renderColor = Color4.Black;
-        double deltaTime = 0.0;
+        
         private bool isFlashing = false;
 
         private double timeBetweenUpdates = 0.0;
+        double deltaTime = 0.0;
 
-        // Frequency in seconds
-        double flashFreq = 0.0;
+        double deltaFlashTime = 0.0;
+        
 
         #region Constructor
         public FlasherWindow()
             : base( 800, 600, new GraphicsMode(16, 16))
         {
-            flashFreq = Utilities.HertzToSeconds( FLASH_RATE );
+
+            flashFreq = Utilities.HertzToSeconds( flashRate );
             Console.WriteLine( "Flashing Frequency in seconds: {0}", flashFreq );
         }
         #endregion Constructor
@@ -36,6 +46,14 @@ namespace AudioFlasher
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
+
+            const double duration = 2.0; // duration is 1 second long
+            for ( int i = 1; i <= 10; i++ )
+            {
+                flashQueue.Enqueue( new FlashChange( Utilities.HertzToSeconds( i+2 ), i * duration ) ); // startTime should be an offset to current time, thus we can start at 0.0
+                Console.WriteLine( "Flash Queue's Count: {0}", flashQueue.Count );
+            }
+
 
             this.VSync = VSyncMode.Off;
 
@@ -58,50 +76,55 @@ namespace AudioFlasher
         protected override void OnUpdateFrame( OpenTK.FrameEventArgs e )
         {
             timeBetweenUpdates += e.Time;
-
             deltaTime += e.Time;
-            if ( deltaTime >= flashFreq )
+            deltaFlashTime += e.Time;
+
+            if ( isFlashing && flashQueue.Count != 0 && deltaTime >= flashQueue.Peek().StartTime )
+            {
+                flashFreq = flashQueue.Peek().FreqInSec; // this is not working
+                deltaTime = flashQueue.Dequeue().StartTime;
+                Console.WriteLine( "New Flash Freq: {0}. Next update in {1} secs.", flashFreq, flashQueue.Peek().StartTime - deltaTime );
+            }
+
+            if ( deltaFlashTime >= flashFreq )
             {
                 toggleColor();
-                deltaTime = 0.0;
+                deltaFlashTime = 0.0;
+
             }
 
             if ( Keyboard[OpenTK.Input.Key.Escape] )
             {
-                this.Exit();
-                return;
+                Exit();
             }
-            else if ( Mouse[OpenTK.Input.MouseButton.Left] ) // && deltaTime >= 0.5
+            else if ( Keyboard[OpenTK.Input.Key.Space] && timeBetweenUpdates >= 0.5 )
+            {
+                timeBetweenUpdates = 0.0;
+                isFlashing = !isFlashing;
+            }
+            /*else if ( Mouse[OpenTK.Input.MouseButton.Left] ) // && deltaTime >= 0.5
             {
                 Console.WriteLine( "Left click occured at ({0}, {1}).", Mouse.X, Mouse.Y );
             }
-            else if ( Keyboard[OpenTK.Input.Key.Space] && timeBetweenUpdates  >= 0.5)
+            else if ( Keyboard[OpenTK.Input.Key.Up] && timeBetweenUpdates >= 0.7 )
             {
-                timeBetweenUpdates = 0.0;
-                bool temp = isFlashing;
-                isFlashing = !isFlashing;
-
-                Console.WriteLine( "Is Flashing: {0} -> {1}", temp, isFlashing );
+                flashRate++;
+                flashFreq = Utilities.HertzToSeconds( flashRate );
+                Console.WriteLine( "Flashing increased to {0}", flashRate );
             }
-            else if ( Keyboard[OpenTK.Input.Key.Up] && timeBetweenUpdates >= 0.5 )
+            else if ( Keyboard[OpenTK.Input.Key.Down] && timeBetweenUpdates >= 0.7 )
             {
-                FLASH_RATE++;
-                flashFreq = Utilities.HertzToSeconds( FLASH_RATE );
-                Console.WriteLine( "Flashing increased to {0}", FLASH_RATE );
-            }
-            else if ( Keyboard[OpenTK.Input.Key.Down] && timeBetweenUpdates >= 0.5 )
-            {
-                if ( FLASH_RATE - 1 < 0 ) FLASH_RATE = 0;
-                else FLASH_RATE--;
+                if ( flashRate - 1 < 0 ) flashRate = 0;
+                else flashRate--;
                 
-                flashFreq = Utilities.HertzToSeconds( FLASH_RATE );
-                Console.WriteLine( "Flashing decreased to {0}", FLASH_RATE );
-            }
+                flashFreq = Utilities.HertzToSeconds( flashRate );
+                Console.WriteLine( "Flashing decreased to {0}", flashRate );
+            }*/
         }
 
         protected override void OnRenderFrame( OpenTK.FrameEventArgs e )
         {
-            this.Title = "FPS: " + (1 / e.Time).ToString( "0." );
+            this.Title = "AudioFlasher - FPS: " + (1 / e.Time).ToString( "0." );
 
             GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
             
@@ -113,6 +136,7 @@ namespace AudioFlasher
             this.SwapBuffers();
         }
 
+        #region Private Methods
 
         private void toggleColor()
         {
@@ -125,6 +149,20 @@ namespace AudioFlasher
                 this.renderColor = Color4.Black;
             }
         }
+
+        private int SecondsToHertz( double secs )
+        {
+            return (int) (secs / 60.0);
+        }
+
+        private double HertzToSeconds( int freq )
+        {
+            if ( freq <= 0.0 ) return 0.0;
+
+            return (double) (1.0 / (freq));
+        }
+
+        #endregion
 
 
     }
