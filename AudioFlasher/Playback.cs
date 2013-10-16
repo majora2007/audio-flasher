@@ -70,39 +70,5 @@ namespace AudioFlasher
                 default: throw new NotSupportedException( "The specified sound format is not supported." );
             }
         }
-
-        /*public static void Main()
-        {
-            using ( AudioContext context = new AudioContext() )
-            {
-                int buffer = AL.GenBuffer();
-                int source = AL.GenSource();
-                int state;
-
-                int channels, bits_per_sample, sample_rate;
-                byte[] sound_data = LoadWave( File.Open( filename, FileMode.Open ), out channels, out bits_per_sample, out sample_rate );
-                AL.BufferData( buffer, GetSoundFormat( channels, bits_per_sample ), sound_data, sound_data.Length, sample_rate );
-
-                AL.Source( source, ALSourcei.Buffer, buffer );
-                AL.SourcePlay( source );
-
-                Trace.Write( "Playing" );
-
-                // Query the source to find out when it stops playing.
-                do
-                {
-                    Thread.Sleep( 250 );
-                    Trace.Write( "." );
-                    AL.GetSource( source, ALGetSourcei.SourceState, out state );
-                }
-                while ( (ALSourceState) state == ALSourceState.Playing );
-
-                Trace.WriteLine( "" );
-
-                AL.SourceStop( source );
-                AL.DeleteSource( source );
-                AL.DeleteBuffer( buffer );
-            }
-        }*/
     }
 }
