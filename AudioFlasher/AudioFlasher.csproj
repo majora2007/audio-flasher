@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="FlashChange.cs" />
     <Compile Include="FlasherWindow.cs" />
+    <Compile Include="Playback.cs" />
     <Compile Include="PriorityQueue.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -5,12 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
+using System.IO;
+using System.Threading;
+using System.Diagnostics;
 
 namespace AudioFlasher
 {
     class Program
     {
-        const string FILE_NAME = "C:/Users/jvmilazz/Desktop/zero-min.mp3";
+        const string filename = "C:/Users/jvmilazz/Desktop/zero-ten.wav";
+        //static readonly string filename = Path.Combine( Path.Combine( "Data", "Audio" ), "the_ring_that_fell.wav" );
         const int BUFFER_SIZE = (int) (0.5 * 44100);
         const int BUFFER_COUNT = 4;
 
@@ -21,50 +25,39 @@ namespace AudioFlasher
         public static void Main( string[] args )
         {
             // Load audio file here and pass reference to FlasherWindow.
-
-            /*using ( AudioContext audioContext = new AudioContext() )
+            using ( AudioContext context = new AudioContext() )
             {
+                int buffer = AL.GenBuffer();
                 int source = AL.GenSource();
-                int[] buffers = AL.GenBuffers(BUFFER_COUNT);
                 int state;
 
-                Console.WriteLine("Testing WaveReader({0}).ReadSamples()", FILE_NAME);
-                
-                Console.WriteLine("Playing");
+                int channels, bits_per_sample, sample_rate;
+                byte[] sound_data = Playback.LoadWave( File.Open( filename, FileMode.Open ), out channels, out bits_per_sample, out sample_rate );
+                AL.BufferData( buffer, Playback.GetSoundFormat( channels, bits_per_sample ), sound_data, sound_data.Length, sample_rate );
 
-                AL.SourceQueueBuffers(source, buffers.Length, buffers);
-                AL.SourcePlay(source);
+                AL.Source( source, ALSourcei.Buffer, buffer );
+                AL.SourcePlay( source );
 
-                int processedCount, queuedCount;
+                Trace.Write( "Playing" );
 
-                do {
-                    do {
-                        AL.GetSource(source, ALGetSourcei.BuffersProcessed, out processedCount);
-                    } while (processedCount == 0);
+                // Query the source to find out when it stops playing.
+                do
+                {
+                    Thread.Sleep( 250 );
+                    Trace.Write( "." );
+                    AL.GetSource( source, ALGetSourcei.SourceState, out state );
+                }
+                while ( (ALSourceState) state == ALSourceState.Playing );
 
-                    AL.GetSource(source, ALGetSourcei.BuffersQueued, out queuedCount);
-                    if (queuedCount > 0)
-                    {
-                        AL.GetSource(source, ALGetSourcei.SourceState, out state);
-                        if ((ALSourceState) state != ALSourceState.Playing)
-                        {
-                            AL.SourcePlay(source);
-                            Console.WriteLine("r");
-                        }
-                    } else {
-                        break;
-                    }
-                } while (true);
+                Trace.WriteLine( "" );
 
-                AL.SourceStop(source);
-                AL.DeleteSource(source);
-                AL.DeleteBuffers(buffers);
-
-            }*/
+                AL.SourceStop( source );
+                AL.DeleteSource( source );
+                AL.DeleteBuffer( buffer );
+            }      
  
             using ( FlasherWindow flashWindow = new FlasherWindow() )
             {
-                //Utilities.SetWindowTitle( flashWindow );
                 flashWindow.Run( 30.0, 0.0 );
             }
         }
