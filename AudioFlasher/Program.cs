@@ -38,7 +38,7 @@ namespace AudioFlasher
                 Trace.WriteLine( "Bits per Sample: " + bits_per_sample );
                 Trace.WriteLine( "Sample Rate: " + sample_rate );
 
-                // Every 4 bytes is equal to one 
+                // Every 2 bytes is equal to one sample. The reason for the 4 is because the audio file has sample for left ear, then sample for right ear. These should count as 1 sample.
                 int seconds = (sound_data.Length/ sample_rate) / 4;
                 Trace.WriteLine( "There should be " + seconds + " seconds of sound to play." );
                 int pulseRate = 0, pulseCount = 0;
@@ -46,25 +46,29 @@ namespace AudioFlasher
                 {
                     int currentSecond = 0;
                     if (i > 0) currentSecond = (i / sample_rate) / 4;
+                    int leftSample = sound_data[i] + sound_data[i + 1];
+                    int rightSample = sound_data[i + 2] + sound_data[i + 3];
 
-                    byte b0 = sound_data[i];
-                    byte b1 = sound_data[i + 1];
-                    byte b2 = sound_data[i + 2];
-                    byte b3 = sound_data[i + 3];
+                    int sample = leftSample + rightSample;
+                    //Console.WriteLine( "Byte at second {0} is {1}", currentSecond, sample );
 
-                    if ( i > 1 && i % sample_rate == 0 && pulseCount > 0) // 9000 is when switch occurs
+                    // sample rate * 2 because we have 2 bytes per sample
+                    /*if ( i > 1 && (i*2) / (sample_rate) == 1 )
                     {
-                        pulseRate = sample_rate / pulseCount;
-                        Console.WriteLine( "There are {0} pulses for the {1} second.", pulseRate, i / sample_rate );
-                        pulseCount = 0;
-                    }
+                        Console.WriteLine( "There were {0} bytes for 1 second.", i );
+                        break;
+                    }*/
 
-                    int soundElement = b0 + b1 + b2 + b3;
-                    //Console.WriteLine( "Byte at second {0} is {1}", currentSecond, soundElement );
-
-                    if ( soundElement > 100 )
+                    if ( sample >= 255 )
                     {
                         pulseCount++;
+                    }
+
+                    if ( i > 1 && (i*2) % sample_rate == 0 && pulseCount > 0 )
+                    {
+                        pulseRate = sample_rate / pulseCount;
+                        Console.WriteLine( "There are {0} pulses for the {1}th second.", pulseRate, currentSecond );
+                        pulseCount = 0;
                     }
                     
                 }
