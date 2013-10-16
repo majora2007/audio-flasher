@@ -13,6 +13,7 @@ using System.Drawing;
 
 using OpenTK;
 using OpenTK.Input;
+using System.IO;
 
 namespace AudioFlasher
 {
@@ -35,5 +36,75 @@ namespace AudioFlasher
  
             return (double) (1.0 / (freq));
         }
+
+        // Does not work
+        public static string TwosComplimentMath( string value1, string value2 )
+        {
+            
+            char[] binary1 = value1.ToCharArray();
+            char[] binary2 = value2.ToCharArray();
+            bool carry = false;
+            char[] calcResult = new char[16]; // For 16-bit numbers
+
+            for ( int i = 15; i >= 0; i-- )
+            {
+                if ( binary1[i] == binary2[i] )
+                {
+                    if ( binary1[i] == '1' )
+                    {
+                        if ( carry )
+                        {
+                            calcResult[i] = '1';
+                            carry = true;
+                        }
+                        else
+                        {
+                            calcResult[i] = '0';
+                            carry = true;
+                        }
+                    }
+                    else
+                    {
+                        if ( carry )
+                        {
+                            calcResult[i] = '1';
+                            carry = false;
+                        }
+                        else
+                        {
+                            calcResult[i] = '0';
+                            carry = false;
+                        }
+                    }
+                }
+                else
+                {
+                    if ( carry )
+                    {
+                        calcResult[i] = '0';
+                        carry = true;
+                    }
+                    else
+                    {
+                        calcResult[i] = '1';
+                        carry = false;
+                    }
+                }
+            }
+
+            return new string( calcResult );
+        }
+    
+        public static void Debug_WriteBufferToFile(string filename, int[] buffer)
+        {
+            using ( StreamWriter fileStream = new StreamWriter( filename ) )
+            {
+                foreach (byte b in buffer)
+                {
+                    fileStream.WriteLine(b);
+                }
+            }
+        }
+    
     }
 }

@@ -13,7 +13,7 @@ namespace AudioFlasher
 {
     class Program
     {
-        const string filename = "C:/Users/jvmilazz/Desktop/one.wav";
+        const string filename = @"C:/Users/jvmilazz/Desktop/one.wav";
         //static readonly string filename = Path.Combine( Path.Combine( "Data", "Audio" ), "one.wav" );
         const int BUFFER_SIZE = (int) (0.5 * 44100);
         const int BUFFER_COUNT = 4;
@@ -35,6 +35,19 @@ namespace AudioFlasher
                 byte[] sound_data = Playback.LoadWave( File.Open( filename, FileMode.Open ), out channels, out bits_per_sample, out sample_rate );
                 AL.BufferData( buffer, Playback.GetSoundFormat( channels, bits_per_sample ), sound_data, sound_data.Length, sample_rate );
 
+                /*if ( sound_data.Length >= 2 )
+                {
+                    int[] sound_buffer = new int[sound_data.Length / 4];
+                    int count = 0;
+                    for ( int i = 0; i < sound_data.Length; i += 4 )
+                    {
+                        sound_buffer[count] = ((sound_data[i + 1] * 256 + sound_data[i]) + (sound_data[i+3] * 256 + sound_data[i+2]))/2;
+                        count++;
+                    }
+
+                    Utilities.Debug_WriteBufferToFile( filename + "_debug.txt", sound_buffer );
+                }*/
+
 
 
                 Trace.WriteLine( "Bits per Sample: " + bits_per_sample );
@@ -48,11 +61,11 @@ namespace AudioFlasher
                 for ( int i = 0; i < sound_data.Length; i+=4 )
                 {
                     int currentSecond = calculateSecond( i, sample_rate );
-                    int leftSample = sound_data[i] + sound_data[i + 1];
-                    int rightSample = sound_data[i + 2] + sound_data[i + 3];
+                    int leftSample = sound_data[i + 1] * 256 + sound_data[i];
+                    int rightSample = sound_data[i + 2] * 256 + sound_data[i + 3];
                     int sample = leftSample + rightSample;
 
-                    if ( sample == 1020 ) // 1020 is always max per second
+                    if ( sample > 200 ) // 1020 is always max per second
                     {
                         pulseCount++;
                     }
@@ -107,5 +120,7 @@ namespace AudioFlasher
             if ( i == 0 ) return false;
             else return (i * 2) % sampleRate == 0;
         }
+
+        
     }
 }
